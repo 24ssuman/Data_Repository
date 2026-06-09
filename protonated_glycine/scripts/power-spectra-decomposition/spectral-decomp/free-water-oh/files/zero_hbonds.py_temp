@@ -1,0 +1,75 @@
+import math
+import numpy as np
+
+nframes = 
+
+def dist(a, b):
+	return math.sqrt((float(a[0]) - float(b[0])) ** 2 + (float(a[1]) - float(b[1])) ** 2 + (float(a[2]) - float(b[2])) ** 2)
+
+
+
+def angle(a, b, c):
+	for i in range(3):
+		a[i] = float(a[i])    
+		b[i] = float(b[i])    
+		c[i] = float(c[i])    
+
+	ba = [a[i] - b[i] for i in range(3)]
+	bc = [c[i] - b[i] for i in range(3)]	
+	
+	# Normalize
+	ba_norm = ba / np.linalg.norm(ba)
+	bc_norm = bc / np.linalg.norm(bc)
+	
+	# Dot product and angle
+	cos_angle = np.dot(ba_norm, bc_norm)
+	cos_angle = np.clip(cos_angle, -1.0, 1.0)  # numerical stability
+	angle = np.degrees(np.arccos(cos_angle))
+	
+	return angle
+
+
+
+def read_cmds(f1, f2):
+	fpos = open(f1, 'r+')
+	fvel = open(f2, 'r+')
+	pos = fpos.readlines()
+	vel = fvel.readlines()
+	natom = int(pos[0].split()[-1])
+	for i in range(nframes):
+		for j in range(int(natom / 3)):
+			for k in range(int(natom / 3)):
+				if j != k:
+					o1 = (i * (natom + 1)) + (j * 3) + 1
+					vel[o1] = ['OW', '0', '0', '0']
+					vel[o1] = ' '.join(vel[o1])
+					vel[o1] += '\n'
+					o2 = (i * (natom + 1)) + (k * 3) + 1
+					if (dist(pos[o1].split()[1:], pos[o2].split()[1:]) < 3.0):
+						a1 = angle(pos[o2].split()[1:], pos[o1].split()[1:], pos[o1 + 1].split()[1:])
+						a2 = angle(pos[o2].split()[1:], pos[o1].split()[1:], pos[o1 + 2].split()[1:])
+						if (a1 < 30):
+							vel[o1 + 1] = ['HW', '0', '0', '0']
+							vel[o1 + 1] = ' '.join(vel[o1 + 1])
+							vel[o1 + 1] += '\n'
+						if (a2 < 30):
+							vel[o1 + 2] = ['HW', '0', '0', '0']
+							vel[o1 + 2] = ' '.join(vel[o1 + 2])
+							vel[o1 + 2] += '\n'
+#						if (a1 < 30 and a2 < 30):	
+#							vel[o1] = ['OW', '0', '0', '0']
+#							vel[o1] = ' '.join(vel[o1])
+#							vel[o1] += '\n'
+	return vel
+		
+
+def write_cmd(fname, vel):
+	f = open(fname, 'w+')
+	for i in range(len(vel)):
+		f.write(vel[i])
+
+vel = read_cmds('POSITION_CMD', 'VELOCITY_CMD_OLD')
+write_cmd('VELOCITY_CMD', vel)
+
+
+

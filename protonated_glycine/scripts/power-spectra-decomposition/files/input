@@ -1,0 +1,13 @@
+&input
+
+Ntime = 125000 
+dt = 8
+Nmol  = 1
+Natom = 14
+box_x_in = -25.d0
+box_x_fin = 25.d0
+box_y_in = -25.d0
+box_y_fin = 25.d0
+box_z_in = -25.d0
+box_z_fin = 25.d0
+/

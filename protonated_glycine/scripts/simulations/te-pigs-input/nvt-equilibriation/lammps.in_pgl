@@ -1,0 +1,31 @@
+variable        dt  equal 0.00001  #ps
+variable        nsteps  equal 1000002
+
+units  		metal
+atom_style 	atomic
+boundary 	f f f
+
+neighbor        2.0 bin
+neigh_modify    every 1 delay 1 check no
+read_data 	pgl-1-water.data 
+
+mass		1 14.007
+mass		2 1.008
+mass		3 12.011
+mass		4 1.008
+mass		5 12.011
+mass		6 15.999
+mass		7 15.999
+mass		8 1.008
+mass		9 15.999
+mass		10 1.008
+
+pair_style      deepmd graph_qc-compress.pb
+
+pair_coeff      * * N H C H C O O H NULL NULL #put element types, follow the order as in the data file
+
+fix 		1 all ipi qc 31296 unix 
+
+timestep        ${dt}
+
+run             ${nsteps} upto
