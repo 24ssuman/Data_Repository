@@ -1,0 +1,15 @@
+&input
+
+dt        = 0.0008
+Nmof      = 0 
+Nmol      = 1 
+Nmol1     = 1
+Nmol2     = 1
+Natom     = 2
+Natom1    = 2
+Natom2    = 2
+time_max  = 10.0
+
+
+/
+

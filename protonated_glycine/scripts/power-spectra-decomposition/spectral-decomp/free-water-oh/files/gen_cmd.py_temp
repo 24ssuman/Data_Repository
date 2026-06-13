@@ -1,0 +1,51 @@
+
+
+
+
+nframes =  
+wat_order = ['OW', 'HW']
+wat_type = [9, 10]
+timestep = 0.0001
+
+def read_lammpstrj(fname):
+	f = open(fname, 'r+')
+	frames = []
+	ts = []
+	for i in range(nframes):
+		waters = []
+		line = f.readline()
+		ts.append(int(f.readline()))
+		while ('ITEM: ATOMS' not in line):
+			if ('ITEM: NUMBER OF ATOMS' in line):
+				line = f.readline()
+				natom = int(line)
+			else:
+				line = f.readline()
+		line = line.split()
+		type_idx = line.index('type') - 2
+		want = []
+		for i in range(natom):
+			line = f.readline().split()
+			t = int(line[type_idx])
+			if t in wat_type:
+				line = line[4:]
+				line.insert(0, wat_order[wat_type.index(t)])
+				newline = ' '.join(line)
+				newline += "\n"
+				waters.append(newline)		
+		frames.append(waters)
+	return frames, ts	
+
+
+
+def write_file(fname, frames, ts):
+	f1 = open(fname, 'w+')
+	for i in range(len(frames)):
+		f1.write('	' + str(ts[i]) + '	' + str(timestep * ts[i]) + '      ' + str(len(frames[i])) + '\n')
+		for j in range(len(frames[i])):
+			f1.write(frames[i][j])
+
+f, t = read_lammpstrj('vel.lammpstrj')
+write_file('VELOCITY_CMD_OLD', f, t)
+f, t = read_lammpstrj('pos.lammpstrj')
+write_file('POSITION_CMD', f, t)

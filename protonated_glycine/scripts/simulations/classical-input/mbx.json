@@ -1,0 +1,19 @@
+{
+   "Note" : "json file for MB-nrg CH4",
+   "MBX" : { 
+       "box" : [50,0,0,0,50,0,0,0,50],
+       "twobody_cutoff"   : 25.0,
+       "threebody_cutoff" : 4.5,
+       "dipole_tolerance" : 1E-8,
+       "dipole_max_it"    : 100,
+       "dipole_method"     : "cg",
+       "alpha_ewald_elec" : 0.0,
+       "grid_density_elec" : 2.5,
+       "spline_order_elec" : 6,
+       "alpha_ewald_disp" : 0.0,
+       "grid_density_disp" : 2.5,
+       "spline_order_disp" : 6,
+       "ignore_2b_poly" : [],
+       "ignore_3b_poly" : []
+   }   
+}

@@ -1,0 +1,13 @@
+&input
+
+Ntime = 
+temp = 10.00
+volume = 125000
+time_integration = 10.0 
+Nskip = 1
+ncount = 8
+nav = 1
+alpha = 0.0
+
+/
+
