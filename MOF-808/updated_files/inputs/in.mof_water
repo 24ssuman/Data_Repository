@@ -1,0 +1,326 @@
+# ============================================================
+# Sample LAMMPS input for MOF-808 with MB-pol water
+#
+# The MOF framework uses the force-field parameters provided
+# below/in included files. MB-pol is the active water model
+# in this setup and is evaluated through the MBX LAMMPS pair
+# style. 
+# ============================================================
+
+
+# ============================================================
+# Variable definitions
+# ============================================================
+
+variable        temp index 298          # simulation temperature (K)
+variable        dt equal 0.5            # timestep (fs; MB-pol without water SHAKE)
+variable        pressure equal 1.0      # pressure (atm)
+
+
+# ============================================================
+# Basic simulation settings
+# ============================================================
+
+processors      * * * map xyz
+
+units           real
+atom_style      full
+boundary        p p p
+
+box             tilt large
+read_data       mof808_1040wat.data
+
+
+# ============================================================
+# Groups and molecular definitions
+# ============================================================
+
+group           mof type 1 2 3 4 5 6 7 8 9 10 11
+#group          li type 12
+group           h2o type 12 13
+#group          co2 type 9 10
+
+# MB-pol water is mapped directly to the MBX h2o monomer below;
+# no separate molecule file is used.
+
+
+# ============================================================
+# Bonded interaction styles
+# ============================================================
+
+# MB-pol water intramolecular interactions are evaluated by MBX.
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  harmonic
+improper_style  cvff
+
+
+# ============================================================
+# Atomic masses
+# ============================================================
+
+mass            12 15.9994
+mass            13 1.008
+
+
+# ============================================================
+# MOF bonded parameters
+# ============================================================
+
+include         coefficients
+
+
+# ============================================================
+# Water parameters
+# ============================================================
+
+# ----------------------------
+# H2O - MB-pol via MBX
+# ----------------------------
+
+# MBX supplies the MB-pol intramolecular and intermolecular
+# interactions for the h2o monomers mapped below. No fixed-charge
+# water terms or separate water bonded terms are assigned here.
+# For the retained MOF LJ mixing terms, use MB-pol O-O
+# sigma=3.26393 A, epsilon=0.26948 kcal/mol and H-H
+# sigma=2.68354 A, epsilon=3.7e-10 kcal/mol.
+
+bond_coeff      12 0.0 0.0          # handled by the MBX h2o monomer
+angle_coeff     28 0.0 0.0          # handled by the MBX h2o monomer
+
+
+# ============================================================
+# Optional CO2 bonded parameters
+# ============================================================
+
+#bond_coeff      9  0.0 0.0
+#angle_coeff     16 0.0 0.0
+
+
+# ============================================================
+# Nonbonded interactions
+# ============================================================
+
+# Standard LJ + long-range Coulomb option (inactive)
+#pair_style      lj/cut/coul/long 20.0
+
+# MB-pol through MBX, with the existing MOF LJ terms and
+# Coulomb exclusions retained as in the supplied MBX example.
+pair_style      hybrid/overlay mbx 9.0 lj/cut 9.0 coul/exclude 9.0
+
+pair_modify     tail yes
+
+
+# ============================================================
+# MOF pair coefficients
+# ============================================================
+
+include         PAIR_COEFFICIENTS
+
+
+# ============================================================
+# CO2-MOF mixed interactions
+# ============================================================
+
+# CO2 MOF Mixed
+
+
+# ============================================================
+# Water-water pair coefficients
+# ============================================================
+
+# MB-pol water-water interactions are supplied by the active
+# MBX h2o mapping below; no separate water pair coefficients are active.
+
+
+# ============================================================
+# MB-pol interactions through MBX
+# ============================================================
+
+# The MOF atoms are represented as dp1 monomers and atom types
+# 12/13 are mapped as O/H/H atoms of each MB-pol h2o monomer.
+pair_coeff      * * mbx 2 dp1 1*11 h2o 12 13 13 json mbx.json
+
+
+# ----------------------------
+# MBX-CO2
+# ----------------------------
+
+#pair_coeff      9  9  mbx 0.0 0.0
+#pair_coeff      9 10  mbx 0.0 0.0
+#pair_coeff      10 10 mbx 0.0 0.0
+
+
+# ----------------------------
+# MBX-water-CO2
+# ----------------------------
+
+#pair_coeff      7  9  mbx 0.0 0.0
+#pair_coeff      7 10  mbx 0.0 0.0
+#pair_coeff      8  9  mbx 0.0 0.0
+#pair_coeff      8 10  mbx 0.0 0.0
+
+
+# ----------------------------
+# Coulomb exclusions for the MOF framework, matching the supplied
+# MBX/LAMMPS example.
+# ----------------------------
+
+pair_coeff      1*11 1*11 coul/exclude
+
+
+# ============================================================
+# Long-range electrostatics
+# ============================================================
+
+# MBX supplies the MB-pol electrostatics; no separate long-range
+# k-space style is active for this model.
+#kspace_style    ewald 0.000001
+
+special_bonds   amber
+
+
+# ============================================================
+# Neighbor settings
+# ============================================================
+
+neighbor        2.0 bin
+neigh_modify    every 1 delay 1 check yes
+
+
+# ============================================================
+# Timestep
+# ============================================================
+
+timestep        ${dt}
+
+
+# ============================================================
+# Optional MBX energy decomposition
+# ============================================================
+
+#compute         mbx all pair mbx
+
+#variable        e1    equal c_mbx[1]
+#variable        e2    equal c_mbx[2]
+#variable        e3    equal c_mbx[3]
+#variable        e4    equal c_mbx[4]
+#variable        edisp equal c_mbx[5]
+#variable        ebuck equal c_mbx[6]
+#variable        eele  equal c_mbx[7]
+#variable        etot  equal c_mbx[8]
+
+
+# ============================================================
+# Thermodynamic output
+# ============================================================
+
+# Simplified thermo output
+#thermo_style    custom step time temp cella cellb cellc vol pe ke etotal
+
+# Extended thermo output
+#thermo_style    custom step time temp cella cellb cellc evdwl ecoul epair ebond eangle edihed eimp emol elong etail pe etotal press xlo xhi ylo yhi zlo zhi xy xz yz vol
+
+thermo_style    custom step time temp cella cellb cellc vol pe ke etotal press
+
+thermo          5
+thermo_modify   flush yes
+
+
+# ============================================================
+# Optional atom-ID reset
+# ============================================================
+
+#reset_atoms     id sort yes
+#reset_ids
+
+
+# ============================================================
+# Constraints and optional enhanced-sampling settings
+# ============================================================
+
+# Retain the original framework bond constraints, but do not apply
+# SHAKE to MB-pol water bonds/angles handled by MBX.
+fix             myshake mof shake 1e-5 50 10 b 5 7 11
+
+
+# ----------------------------
+# Optional PLUMED
+# ----------------------------
+
+#fix             plumed all plumed plumedfile plumed.dat outfile plumed.out
+
+
+# ============================================================
+# Ensemble settings
+# ============================================================
+
+# ----------------------------
+# NVT
+# ----------------------------
+
+fix             mynvt all nvt temp ${temp} ${temp} $(100.0*dt) tchain 4
+
+#fix             nvt all nvt temp 300.0 300.0 1.0
+
+
+# ----------------------------
+# NPT
+# ----------------------------
+
+#fix             mynpt all npt temp ${temp} ${temp} $(100.0*dt) iso ${pressure} ${pressure} $(1000.0*dt) tchain 4
+
+#fix             3 all npt temp 298.15 298.15 $(250.0*dt) iso 1.0 1.0 $(1000.0*dt)
+
+#fix             4 mof npt temp 298.15 298.15 $(250.0*dt) iso 1.0 1.0 $(1000.0*dt)
+
+#fix             3 all npt temp 298.15 298.15 $(10.0*dt) iso 1.0 1.0 $(100.0*dt)
+
+
+# ----------------------------
+# NVE
+# ----------------------------
+
+#fix             nve all nve
+
+
+# ============================================================
+# Recenter MOF framework
+# ============================================================
+
+fix             myrecenter mof recenter INIT INIT INIT shift all
+# units box
+
+
+# ============================================================
+# Optional velocity initialization
+# ============================================================
+
+#velocity        all create ${temp} 428879 rot yes dist gaussian
+#velocity        all zero linear
+#velocity        all zero angular
+
+
+# ============================================================
+# Trajectory and restart output
+# ============================================================
+
+dump            1 all custom 5 traj.lammpstrj id type x y z
+dump_modify     1 sort id
+
+#restart         5000 restart.inter.1 restart.inter.2
+
+
+# ============================================================
+# Run
+# ============================================================
+
+run             2000
+
+
+# ============================================================
+# Final output
+# ============================================================
+
+write_data      final.data nocoeff
+write_restart   restart.inter
