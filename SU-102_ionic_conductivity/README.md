@@ -1,5 +1,9 @@
 # SU-102 Li+/PC Simulations
 
+This folder contains the data for the paper *Molecular Origins of Lithium-Ion Transport in the Anionic Metal–Organic Framework SU-102*.
+
+Paper link: [Will be updated later](#)
+
 LAMMPS inputs and equilibrated structures for two Li+/propylene carbonate (PC) workflows in SU-102:
 
 - color-charge nonequilibrium molecular dynamics (CCD-NEMD) for ionic conductivity;
